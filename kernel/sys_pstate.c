@@ -16,6 +16,7 @@ sys_pstate(void)
     int runCounter = 0;
     int sleepCounter = 0;
     int runnableCounter = 0;
+    int totalCounter = 0;
     for(p = proc; p < &proc[NPROC]; p++) {
         if(p->state == RUNNABLE) {
             runnableCounter++;
@@ -26,12 +27,40 @@ sys_pstate(void)
         }        
         if(p->state == RUNNABLE || p->state == RUNNING || p->state == SLEEPING)
         {
-            printf("pid: %d, state: %d, name: %s, parent: %s\n", p->pid, p->state, p->name, p->parent ? p->parent->name : "(init)");
+            const char *state_var;
+            switch (p->state) {
+                    case SLEEPING:
+                        state_var = "SLEEPING";
+                        break;
+                    case RUNNABLE:
+                        state_var = "RUNNABLE";
+                        break;
+                    case RUNNING:
+                        state_var = "RUNNING";
+                        break;
+                    default:
+                        state_var = "UNKNOWN";
+                        break;                        
+                }            
+            printf("pid: %d, state: %s, name: %s, parent: %s\n", p->pid, state_var, p->name, p->parent ? p->parent->name : "(init)");
+            totalCounter++;
         }
     }
     printf("Process State Summary:\n");
-    printf("RUNNABLE: %d\n", runnableCounter);
-    printf("RUNNING: %d\n", runCounter);
-    printf("SLEEPING: %d\n", sleepCounter);
+    printf("Total: %d\n", totalCounter);
+    // printf("RUNNING: %d\n", runCounter);
+    // printf("SLEEPING: %d\n", sleepCounter);
     
+    for(int i = 0; i < NCPU; i++) {
+        struct cpu *c = &cpus[i];
+        //Print all details about the CPU state
+
+        printf("CPU %d ", i);
+
+        if(c->proc) {
+            printf("CPU %d: running process %d\n", i, c->proc->pid);
+        } else {
+            printf("CPU %d: idle\n", i);
+        }
+    }
 }

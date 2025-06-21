@@ -147,6 +147,7 @@ UPROGS=\
 	$U/_pingpong\
 	$U/_exectime\
 	$U/_pstate\
+	$U/_pi\
 	
 
 
