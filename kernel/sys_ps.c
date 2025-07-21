@@ -9,7 +9,7 @@ extern struct proc proc[NPROC];
 extern struct cpu cpus[NCPU];
 
 void
-sys_pstate(void)
+sys_ps(void)
 {
     struct proc *p;
     int totalCounter = 0;
@@ -31,7 +31,7 @@ sys_pstate(void)
                         state_var = "UNKNOWN";
                         break;                        
                 }            
-            printf("pid: %d, state: %s, name: %s, parent: %s\n", p->pid, state_var, p->name, p->parent ? p->parent->name : "(init)");
+            printf("pid: %d, name: %s, state: %s, priority: %d\n",p->pid, p->name,state_var,p->priority);
             totalCounter++;
         }
     }

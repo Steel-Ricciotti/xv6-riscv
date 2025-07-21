@@ -12,4 +12,6 @@
 #define FSSIZE       2000  // size of file system in blocks
 #define MAXPATH      128   // maximum file path name
 #define USERSTACK    1     // user stack pages
-
+#define MAX_PRIORITY 10  // maximum priority for processes
+#define MIN_PRIORITY 0   // minimum priority for processes    
+#define DEFAULT_PRIORITY 5 // default priority for processes

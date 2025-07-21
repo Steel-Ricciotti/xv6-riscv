@@ -110,7 +110,8 @@ static struct proc*
 allocproc(void)
 {
   struct proc *p;
-
+						
+							 
   for(p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
     if(p->state == UNUSED) {
@@ -124,7 +125,7 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
-
+  p->priority = DEFAULT_PRIORITY; //Ensure a default priority
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
@@ -446,6 +447,7 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  static int last_scheduled_process = 0;
 
   c->proc = 0;
   for(;;){
@@ -453,25 +455,43 @@ scheduler(void)
     // turned off; enable them to avoid a deadlock if all
     // processes are waiting.
     intr_on();
+    struct proc *chosen_process = 0;
 
     int found = 0;
-    for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
+    int highest_priority = MAX_PRIORITY + 1;
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
+    //Find the process with the lowest runnable priority that's runnable.
+    for(int i = 1; i < NPROC +1; i++){
+      p = &proc[(last_scheduled_process + i ) % NPROC]; //% NPROC ensures we wrap around so that once we get to the final process we start back at the beginning.
+      if(p->state == RUNNABLE && p->priority < highest_priority){
+        highest_priority = p->priority;
       }
-      release(&p->lock);
     }
+    
+    //Round Robin scheduling for processes with the same priority.
+    for(int i = 0; i < NPROC; i++) {
+      int index = (last_scheduled_process  + i ) % NPROC;
+      p = &proc[index];
+      acquire(&p->lock);
+      if(p->state == RUNNABLE && p->priority == highest_priority) {
+        found = 1;
+        last_scheduled_process  = (index + 1) % NPROC; 
+        chosen_process = p;
+        break;
+    }
+    release (&p->lock);
+    }
+
+    if(chosen_process){
+      chosen_process->state = RUNNING;
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.      
+      c->proc = chosen_process;
+      swtch(&c->context, &chosen_process->context);
+      c->proc = 0;
+      release(&chosen_process->lock);
+    }
+
     if(found == 0) {
       // nothing to run; stop running on this core until an interrupt.
       intr_on();
@@ -479,6 +499,7 @@ scheduler(void)
     }
   }
 }
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores

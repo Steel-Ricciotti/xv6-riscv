@@ -9,9 +9,41 @@ extern struct proc proc[NPROC];
 extern struct cpu cpus[NCPU];
 
 void
-sys_pstate(void)
+sys_set(void)
 {
+    int pid, priority;
+    argint(0, &pid);
+    argint(1, &priority);
+    // if (argint(0, &pid) < 0 || argint(1, &priority) < 0)
+    //     return -1;
+    
+    if(priority < MIN_PRIORITY || priority > MAX_PRIORITY)
+        return;
+    printf("Test");
+    printf("%d", pid);
+    printf("End Test");
     struct proc *p;
+    int found = 0;
+
+    // Find the process with the given pid
+    for(p = proc; p < &proc[NPROC]; p++) {      
+        if(p->pid == pid) {
+            printf("Test");
+            printf("pid: %d, state: %d, name: %s\n", p->pid, p->state, p->name);
+            acquire(&p->lock);
+            p->priority = priority; // Set the new priority
+            release(&p->lock);
+            found = 1;
+            break;
+        }
+    }
+
+    if(!found) {
+        printf("Process with pid %d not found.\n", pid);
+    } else {
+        printf("Set priority of process %d to %d.\n", pid, priority);
+    }
+    // struct proc *p;
     int totalCounter = 0;
     for(p = proc; p < &proc[NPROC]; p++) {
         if(p->state == RUNNABLE || p->state == RUNNING || p->state == SLEEPING)

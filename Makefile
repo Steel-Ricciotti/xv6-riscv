@@ -14,6 +14,8 @@ OBJS = \
   $K/vm.o \
   $K/proc.o \
   $K/sys_pstate.o \
+  $K/sys_ps.o \
+  $K/sys_set.o \
   $K/swtch.o \
   $K/trampoline.o \
   $K/trap.o \
@@ -148,6 +150,10 @@ UPROGS=\
 	$U/_exectime\
 	$U/_pstate\
 	$U/_pi\
+	$U/_set\
+	$U/_ps\
+	$U/_aspace
+	
 	
 
 

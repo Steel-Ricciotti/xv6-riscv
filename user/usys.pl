@@ -37,3 +37,6 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 entry("pstate");
+entry("set");
+entry("ps");
+# entry("aspace");
